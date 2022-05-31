@@ -1,8 +1,8 @@
 function Cns = att2dcm(att,order)
 % Convert Euler angles to DCM.
-%
-% Prototype: Cnb = att2dcm(att, 'zyx')
-% Input: att - att=[pitch; roll; yaw], rad/s
+% s-frame pointed to rfu.
+% Prototype: Cns = att2dcm(att, 'zyx')
+% Input: att - att=[pitch; roll; yaw], rad
 % Output: Cns - DCM from s-frame to n-frame
 %                      i.e. Cns = C^n_s
 % Xiaofeng Ma
