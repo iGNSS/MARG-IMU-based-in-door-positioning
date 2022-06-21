@@ -8,7 +8,7 @@ function att = qua2att(q,order)
 
 % by Xiaofeng Ma
    
-    Cbn = qua2dcm(q)';
+    Cbn = qua2dcm(q,'Cbn');
     
 if strcmp(order,'zxy')      
     att = [asin(Cbn(2,3)), atan2(-Cbn(1,3),Cbn(3,3)), atan2(-Cbn(2,1),Cbn(2,2)) ];
