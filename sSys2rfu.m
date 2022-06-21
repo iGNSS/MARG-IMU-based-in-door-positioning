@@ -20,6 +20,8 @@ end
 switch sSys
     case 'rfu'
         Csn = eye(3);  
+    case 'frd'
+        Csn = dcm('x',pi)*dcm('z',pi/2);
     case 'luf'
         Csn = dcm('x',-pi/2)*dcm('y',pi);%or Csn = dcm('y',pi)*dcm('x',pi/2);
     case 'rub'
