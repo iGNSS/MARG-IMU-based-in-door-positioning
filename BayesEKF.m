@@ -84,18 +84,7 @@ plot(t/60,Ref,'r:','Linewidth',1.5)
 legend('pitch','roll','yaw','reference');
 title('EKF attitude estimates');
 
-N = length(MM_e');
-accne = zeros(N,3);
-    for i = 3:N
-         accne(i,:) = (qua2dcm(MM_e(:,i)','Cnb')*imu.acc(i,:)' - [0;0;glv.g0])';
-    end
-    
- pose = posCalculateWithGait(imu,accne');
-    
-% [pose,~,~,~,~,arr_gait_time,stationaryStart,stationaryEnd,stationary,~]=positionCalculate(imu,accne','foot');
-% figure;plot(pose(:,1),pose(:,2))
-% [pose]=posCalculate(imu,MM_e');
-% figure;plot(pose(:,1),pose(:,2))
+
 if 0
 %% smoother
     ms = m;
