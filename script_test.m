@@ -34,7 +34,7 @@ foot_imu.gyros = (sSys2rfu('rfu')*foot(:,4:6)')' * glv.rad; %转为rad/s
 foot_imu.mag = (sSys2rfu('rfu')*foot(:,11:13)')'; %转为rad/s
 foot_imu.ts = 1/100;
 %%
-filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\Human movement\Xiaofeng 1\VNYMR.csv';
+filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\Human movement\Harish stairs 1\VNYMR.csv';
 foot = xlsread(filename,1);
 foot_imu.acc = (sSys2rfu('frd')*foot(:,7:9)')'; %转为m/s^2
 foot_imu.gyros = (sSys2rfu('frd')*foot(:,10:12)')'; %转为rad/s
@@ -46,7 +46,7 @@ order = 'zxy';
 
 foot_imu1 = foot_imu;
 %---------------初始粗对准-----------------
-still_time =100; 
+still_time =50; 
 [foot_q0,foot_att0] = alignbyAccMag(foot_imu1.acc(1:still_time,:),[],order);
 disp(['-----  初始对准角度（°/s）：',num2str((foot_att0*glv.deg)'),'  -----']);
 if abs(foot_att0(1))>0.1 || abs(foot_att0(2))>0.1 %0727
@@ -64,6 +64,21 @@ qua0 = foot_q0;
 
 BayesEKF
 
+N = length(MM_e');
+accne = zeros(N,3);
+    for i = 3:N
+         accne(i,:) = (qua2dcm(MM_e(:,i)','Cnb')*imu.acc(i,:)' - [0;0;glv.g0])';
+    end
+    
+ pose = posCalculateWithGait(imu,accne');
+    
+% [pose,~,~,~,~,arr_gait_time,stationaryStart,stationaryEnd,stationary,~]=positionCalculate(imu,accne','foot');
+% figure;plot(pose(:,1),pose(:,2))
+% [pose]=posCalculate(imu,MM_e');
+% figure;plot(pose(:,1),pose(:,2))
+
+figure
+plot3(pose(:,1),pose(:,2),pose(:,3))
 %%
 N=length(imu.gyros);
 t = 0:0.01:0.01*(N-1);
