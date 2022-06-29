@@ -35,8 +35,8 @@ foot_imu.mag = (sSys2rfu('rfu')*foot(:,11:13)')'; %转为rad/s
 foot_imu.ts = 1/100;
 %%
 figure(1000);hold on;
-for trial=1:10
-filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\Human movement\Xiaofeng ',num2str(trial),'\VNYMR.csv'];
+for trial=1:2
+filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\Human movement\Harish out ',num2str(trial),'\VNYMR.csv'];
 foot = xlsread(filename,1);
 foot_imu.acc = (sSys2rfu('frd')*foot(:,7:9)')'; %转为m/s^2
 foot_imu.gyros = (sSys2rfu('frd')*foot(:,10:12)')'; %转为rad/s
@@ -49,13 +49,13 @@ order = 'zxy';
 foot_imu1 = foot_imu;
 %---------------初始粗对准-----------------
 still_time =5; 
-[foot_q0,foot_att0] = alignbyAccMag(foot_imu1.acc(1:still_time,:),[],order);
+[foot_q0,foot_att0] = alignbyAccMagatStatic(foot_imu1.acc(1:still_time,:),[],order);
 disp(['-----  初始对准角度（°/s）：',num2str((foot_att0*glv.deg)'),'  -----']);
 if abs(foot_att0(1))>0.1 || abs(foot_att0(2))>0.1 %0727
     foot_imu1.acc = (sSys2rfu(foot_att0,order)*foot_imu1.acc')'; %转为m/s^2
     foot_imu1.gyros = (sSys2rfu(foot_att0,order)*foot_imu1.gyros')'; %转为rad/s
 %     foot_imu1.ratt = (sSys2rfu(foot_att0,order)*foot_imu1.ratt')'; %保持°
-    [foot_q0,foot_att0] = alignbyAccMag(foot_imu1.acc(1:still_time,:),[],order); %根据严静止判断出的动前静止区间选取
+    [foot_q0,foot_att0] = alignbyAccMagatStatic(foot_imu1.acc(1:still_time,:),[],order); %根据严静止判断出的动前静止区间选取
     disp(['-----  初始对准角度（°/s）：',num2str((foot_att0*glv.deg)'),'  -----']);
 end
 foot_imu1.acc = foot_imu1.acc(still_time+1:end,:);%更新起点
@@ -74,7 +74,7 @@ accne = zeros(N,3);
     
  pose = posCalculateWithGait(imu,accne');
  figure(1000)
- plot(pose(:,1),pose(:,2),'r-')
+ plot(pose(:,1),pose(:,2),'g-')
 end 
 % [pose,~,~,~,~,arr_gait_time,stationaryStart,stationaryEnd,stationary,~]=positionCalculate(imu,accne','foot');
 % figure;plot(pose(:,1),pose(:,2))
@@ -83,6 +83,26 @@ end
 
 figure
 plot3(pose(:,1),pose(:,2),pose(:,3))
+
+%% yaw calculated by magnetometer
+yaw = zeros(N,1);
+for k=1:N
+    [foot_q0,foot_att0] = alignbyAccMagatStatic(foot_imu1.acc(k,:),foot_imu1.mag(k,:),order);
+    yaw(k,1) = foot_att0(3);
+end
+figure
+plot(1:N,yaw)
+
+att_EKF(:,3) = yaw;
+accne = zeros(N,3);
+for i = 5:N
+    accne(i,:) = (att2dcm(MM_e(:,i)',order)*imu.acc(i,:)' - [0;0;glv.g0])';
+end
+    
+ pose = posCalculateWithGait(imu,accne');
+ figure(1000)
+ plot(pose(:,1),pose(:,2),'g-')
+
 %%
 N=length(imu.gyros);
 t = 0:0.01:0.01*(N-1);
