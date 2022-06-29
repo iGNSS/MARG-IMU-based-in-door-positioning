@@ -28,53 +28,65 @@ dph=4.8481e-6;dphpsh=8.0802e-8;
 %
 m = qua0;
 P = diag([0.01;0.01;0.01;0.01]);
-    Q = diag([0;0;0;0]);%([0.5;0.5;0.5;0.5]);
-    J1 = qua2dcm(qua0,'Cnb');
-    R=J1*blkdiag(SigmaA)*J1'*1000;%以fb为量测时1000
+Q = diag([0;0;0;0]);%([0.5;0.5;0.5;0.5]);
+J1 = qua2dcm(qua0,'Cnb');
+R=J1*blkdiag(SigmaA)*J1'*1000;%以fb为量测时1000
+% R = 0.002;
 
-    MM = zeros(size(m,1),N);
-    PP = zeros(size(P,1),size(P,2),N); 
+MM = zeros(size(m,1),N);
+PP = zeros(size(P,1),size(P,2),N); 
     
-    for k=1:N
+for k=1:N
+    f = fx4(m, [imu.gyros(k,:) imu.ts]);
+    F = eye(4)+0.5*imu.ts.*[0 -imu.gyros(k,1) -imu.gyros(k,2)  -imu.gyros(k,3);  
+                            imu.gyros(k,1) 0  imu.gyros(k,3) -imu.gyros(k,2);
+                            imu.gyros(k,2)  -imu.gyros(k,3) 0  imu.gyros(k,1);
+                            imu.gyros(k,3)  imu.gyros(k,2) -imu.gyros(k,1) 0];
 
-        f = fx4(m, [imu.gyros(k,:) imu.ts]);
-        F = eye(4)+0.5*imu.ts.*[0 -imu.gyros(k,1) -imu.gyros(k,2)  -imu.gyros(k,3);  
-                        imu.gyros(k,1) 0  imu.gyros(k,3) -imu.gyros(k,2);
-                        imu.gyros(k,2)  -imu.gyros(k,3) 0  imu.gyros(k,1);
-                        imu.gyros(k,3)  imu.gyros(k,2) -imu.gyros(k,1) 0];
-
-        m = f;
-        P = F*P*F' + Q;
-        m = m/norm(m);
-
+    m = f;
+    P = F*P*F' + Q;
+    m = m/norm(m);
+  
+    % The eastward component of the geomagnetic field is zero
+%     mx = imu.mag(k,1); my = imu.mag(k,2); mz = imu.mag(k,3);
+%     q0 = m(1); q1 = m(2); q2 = m(3); q3 = m(4);
+%     hm = imu.mag(k,1)*(m(1)^2+m(2)^2-m(3)^2-m(4)^2)+...
+%         2*imu.mag(k,2)*(m(2)*m(3)-m(1)*m(4))+...
+%         2*imu.mag(k,3)*(m(2)*m(4)+m(1)*m(3));
+%     Hm = [ 2*mx*q0 - 2*my*q3 + 2*mz*q2, 2*mx*q1 + 2*my*q2 + 2*mz*q3, 2*my*q1 - 2*mx*q2 + 2*mz*q0, 2*mz*q1 - 2*my*q0 - 2*mx*q3];
+%     S = Hm*P*Hm' + R;
+%     K = P*Hm'/S;
+%     m = m+ 0.2*K*(0 - hm);
+%     P = P - K*S*K';
+%     m = m/norm(m);
     
-        if zvd(k)==1
-             z = imu.acc(k,:)';
+    % specific force = gravity in ZVI
+    if zvd(k)==1 
+        z = imu.acc(k,:)';
         h = hx4(m, glv.g0);
-H=2*glv.g0*[-m(3) m(4) -m(1) m(2);      % Observation matrix
-        m(2) m(1) m(4) m(3);
-        m(1) -m(2) -m(3) m(4)];
-    
+        H = 2*glv.g0*[-m(3) m(4) -m(1) m(2);      % Observation matrix
+                      m(2) m(1) m(4) m(3);
+                      m(1) -m(2) -m(3) m(4)];
+
         S = H*P*H' + R;
         K = P*H'/S;
-        m = m + 0.002*K*(z - h);
+        m = m+ 0.002*K*(z - h);
         P = P - K*S*K';
         m = m/norm(m);
-        end
-        
-        P = (P + P')/2;
-        
+    end       
+    P = (P + P')/2;    
     
-        MM(:,k) = m;
-        PP(:,:,k) = P;
-    end
- MM_e = MM;
-    t = 0:0.01:0.01*(N-1);
-    Ref = zeros(5,N) + [180;90;0;-90;-180];
+    MM(:,k) = m;
+    PP(:,:,k) = P;
+end
+
+MM_e = MM;
+t = 0:0.01:0.01*(N-1);
+Ref = zeros(5,N) + [180;90;0;-90;-180];
     
-    figure
-    plot(t,MM_e,'Linewidth',1);
-    title('EKF estimate');
+figure
+plot(t,MM_e,'Linewidth',1);
+title('EKF estimate');
 
 att_EKF = qua2attV(MM_e', 'zxy');
 figure
