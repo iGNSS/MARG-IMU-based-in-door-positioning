@@ -17,6 +17,7 @@ if strcmp(discrete_way,'Eular')
                 (Ts*wz)/2,  (Ts*wy)/2, -(Ts*wx)/2,          1];
             
         case 'q bG' % states are quaternion and gyroscope bias
+            q0 = X(1); q1 = X(2); q2 = X(3); q3 = X(4);
             bGx = X(5); bGy = X(6); bGz = X(7);
             X_pre = X + Ts*0.5*[[0, -wx+bGx, -wy+bGy, -wz+bGz;
                                wx-bGx, 0, wz-bGz, -wy+bGy;
@@ -32,6 +33,7 @@ if strcmp(discrete_way,'Eular')
                                  0,                  0,                  0,                  0,          0,          0,          1];
         
         case 'q bG bA' % states are quaternion, gyroscope bias, and accelerometer bias
+            q0 = X(1); q1 = X(2); q2 = X(3); q3 = X(4);
             bGx = X(5); bGy = X(6); bGz = X(7);
             X_pre = X + Ts*0.5*[[0, -wx+bGx, -wy+bGy, -wz+bGz;
                                wx-bGx, 0, wz-bGz, -wy+bGy;
