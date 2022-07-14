@@ -29,7 +29,6 @@ for k=1:N
     % ### measuremnet update
     if zvd(k)==1 
         [z_pre,z_obs,H] = h(X_type,m,obs_type,obs(k,:)',para);
-
         S = H*P*H' + R;
         K = P*H'/S;
         m = m+ K*(z_obs - z_pre);
@@ -49,7 +48,7 @@ figure
 plot(t,MM,'Linewidth',1);
 title('EKF estimate');
 
-att_EKF = qua2attV(MM_e', 'zxy');
+att_EKF = qua2attV(MM', 'zxy');
 figure
 plot(t/60,att_EKF*glv.deg,'Linewidth',1);
 hold on;
@@ -57,5 +56,18 @@ plot(t/60,Ref,'r:','Linewidth',1.5)
 legend('pitch','roll','yaw','reference');
 title('EKF attitude estimates');
 
-q = MM';
+q = MM(1:4,:)';
 
+if strcmp(X_type,'q bG')
+    bG = MM(5:7,:)';
+    figure
+    plot(t/60,bG*glv.deg)
+    title('Gyroscope bias');
+    if strcmp(X_type,'q bG bA')
+        bA = MM(8:10,:)';
+        figure
+        plot(t/60,bA)
+        title('Accelerometer bias');
+    end
+else
+end
