@@ -1,4 +1,4 @@
-function [X_pre,F] = f_qua(X,para,discrete_way,state_type)
+function [X_pre,F] = f_qua(state_type,X,para,discrete_way)
 
 wx = para(1); wy = para(2); wz = para(3);
 Ts = para(4);
